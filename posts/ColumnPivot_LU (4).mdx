@@ -1,0 +1,101 @@
+```python
+import numpy as np
+```
+
+```python
+def colpivot_lu(augmat): 
+    n = augmat.shape[0]     # num of row
+    a,b = np.split(augmat,[n],axis=1)
+    lu = a.copy() 
+    record = np.arange(n) # record the swap action
+
+    for r in range(n): 
+        upper_diag=lu[:r,r].reshape(r,1)  
+        si = a[r:,r] - np.sum(upper_diag*lu[r:,:r].T,axis=0)  
+        index = np.argmax(np.abs(si)) # find the largest elem in si, return index
+
+        if index!=0:  # if max(si) not in current row
+            lu[[r,r+index],:] = lu[[r+index,r],:] # swap
+            record[[r,r+index]] = record[[r+index,r]] # record
+            print('\nswap!\n',lu)
+
+        lower_diag = lu[r,:r].reshape(r,1)     # calculate u
+        lu[r,r:] = lu[r,r:] - np.sum(lower_diag*lu[:r,r:],axis=0)
+        print('\n lu%d:\n'%(r),lu,'\n record%d:\n'%(r),record)
+
+        if r==n-1:  # reach the end of columns
+            continue 
+
+        lu[r+1:,r] = (lu[r+1:,r] - np.sum(upper_diag*lu[r+1:,:r].T,axis=0))/lu[r,r]    # calculate l
+
+    u = np.triu(lu)
+    l = np.tril(lu, k=-1) + np.eye(n) # get one left from diag
+    x = np.linalg.solve(u,np.linalg.solve(l, b[record,:])) # return the sort of index of original ndarray. notice that b needs swap to concordant with a
+    # retrec = np.argsort(record)
+    print('\n\nSolution Ref:\n',np.linalg.solve(a,b))
+    return lu,x
+```
+
+```python
+lists = []
+x = 0
+try:
+    with open('c.txt','r') as f: # input file name
+        for line in f:
+            x+=1
+            lists.extend(line.strip().split())
+except FileNotFoundError:
+    print("Cannot find file!")
+# if any('.' in item for item in lists):
+augmat =np.array(lists).astype(float).reshape(x,x+1)
+# else:
+#     augmat =np.array(lists).astype(int).reshape(x,x+1)
+print(augmat)
+lu,x = colpivot_lu(augmat)
+print('\n x:\n',x)
+```
+
+    [[ 1.000e-03  2.000e+00  3.000e+00  1.000e+00]
+     [-1.000e+00  3.712e+00  4.623e+00  2.000e+00]
+     [-2.000e+00  1.072e+00  5.643e+00  3.000e+00]]
+    
+    swap!
+     [[-2.000e+00  1.072e+00  5.643e+00]
+     [-1.000e+00  3.712e+00  4.623e+00]
+     [ 1.000e-03  2.000e+00  3.000e+00]]
+    
+     lu0:
+     [[-2.000e+00  1.072e+00  5.643e+00]
+     [-1.000e+00  3.712e+00  4.623e+00]
+     [ 1.000e-03  2.000e+00  3.000e+00]] 
+     record0:
+     [2 1 0]
+    
+     lu1:
+     [[-2.0000e+00  1.0720e+00  5.6430e+00]
+     [ 5.0000e-01  3.1760e+00  1.8015e+00]
+     [-5.0000e-04  2.0000e+00  3.0000e+00]] 
+     record1:
+     [2 1 0]
+    
+     lu2:
+     [[-2.00000000e+00  1.07200000e+00  5.64300000e+00]
+     [ 5.00000000e-01  3.17600000e+00  1.80150000e+00]
+     [-5.00000000e-04  6.29891688e-01  1.86807162e+00]] 
+     record2:
+     [2 1 0]
+    
+    
+    Solution Ref:
+     [[-0.49039646]
+     [-0.05103518]
+     [ 0.36752025]]
+    
+     x:
+     [[-0.49039646]
+     [-0.05103518]
+     [ 0.36752025]]
+
+```python
+
+```
